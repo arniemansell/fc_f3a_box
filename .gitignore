@@ -1,3 +1,8 @@
+# FCBE specific
+fcbe_config.json
+fcbe_env/
+fcbe.zip
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -1,13 +1,14 @@
 # README #
 
-## What? ##
-Python application for extracting the F3A box coordinates from a flight-coach/ardupilot .bin file.
+## What is FCBE? ##
+Flight-Coach Box Extractor (FCBE) is a Python application for extracting the F3A box coordinates from a flight-coach/ardupilot .bin file.
 
 ## How to Install and Run ##
-* Download the latest release zip file to a suitable folder e.g., My Documents\fcbe
+* Download the latest release zip file (see _Assets_ [here](https://github.com/arniemansell/fcbe/releases)) to a suitable folder e.g., My Documents\fcbe
 * Right click the zip file and do Extract All
 * Browse to the extracted folder
 * Double click fcbe.exe to run it
+* If the FCBE window does not appear, it could be because Windows has blocked it. See [here](https://www.technewstoday.com/this-file-came-from-another-computer-and-might-be-blocked/) to unblock it.
 
 ## How to use it ##
 ### Preparing logs __without__ an RC connection to your FC hardware ###
@@ -25,9 +26,9 @@ If you have your FC hardware logging your RC channels, you can use a spare switc
 
 * Fire up your model and wait for the GPS to be locked
 * Place the model on the pilot's position
-  * Toggle your switch
+  * Flick your switch
 * Place the model on your centreline reference position, typically at least 25m from the pilot's position
-  * Toggle your switch
+  * Flick your switch back
 * Go ahead and fly
 
 ### Analysing your logs to extract box positions ###
@@ -77,12 +78,12 @@ Position at time 123.8s, 37.4m from origin:
 51.4045127
 -2.8187682
 ~~~
-* You can now copy (ctrl-C) the relevant Lattitudes and Longitudes into FlightCoach Plotter
+* You can now select (double-click) and copy (ctrl-c) the relevant Lattitudes and Longitudes and paste them (ctrl-v) into FlightCoach Plotter
 
 ### Analysing your logs for GPS accuracy and message rates ###
 These are two extra functions which can be useful for debugging Flight Coach issues.
 
-If your FC is logging GPS messages, FCBE can extract the minimum/average/maximum Horizontal and Vertical accuracy estimates and the satellite counts. Having loaded a log, click _GPS Accuracy_:
+If your FC is logging GPS messages, FCBE can calculate the minimum/average/maximum Horizontal and Vertical accuracy estimates and the satellite counts. It does this for the middle 70% of the log. Having loaded a log, click _GPS Accuracy_:
 ~~~
 Accuracy  (min,avg,max):  H [0.2 0.3 0.6]m   V [0.4 0.5 1.1]m
 Sat Count (min,avg,max):  [19 26.3 30]
@@ -98,10 +99,11 @@ GPA:  7917 messages at 9.1Hz (109.9ms)
 MAG:  8778 messages at 10.0Hz (100.0ms)
 RCIN:  21942 messages at 25.0Hz (40.0ms)
 ~~~
+Note that XKF1 includes messages relating to multiple IMUs if you have them.
 
 ## How do I get set up to contribute? ##
 ### Setup for Dev ###
-* Install the latest version of python (3.12 currently) from the Microsoft Store
+* Install the latest version of python (3.12 currently) from [Python Downloads](https://www.python.org/downloads/) or the Microsoft Store
 * Clone the repository
 * Start a command prompt (not powershell) in the cloned directory
 * Create a virtual environment and activate it

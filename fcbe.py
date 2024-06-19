@@ -157,7 +157,7 @@ class FcLog:
 
 
 '''
-Open the user's choice of ardupilot bin file and pase it into a pandas dataframe.
+Open the user's choice of ardupilot bin file and create an FcLog object from it.
 If a valid file is opened, update the init path for the dialogue
 and clear the status widget.
 '''
@@ -288,8 +288,10 @@ def find_static_position_times() -> List[float]:
             case "find_end":
                 if distance > tolerance_metres:
                     end = t_range[0] + window_secs
-                    prnt(f"Stationary between {round(start,1)}s and {round(end,1)}s")
-                    switch_times.append((start + end) / 2)
+                    # Bias the actually measurement time towards the end of the period
+                    meas_time = start + ((end - start) * 0.7)
+                    prnt(f"Stationary between {round(start,1)}s and {round(end,1)}s, will measure at {round(meas_time,1)}s")
+                    switch_times.append(meas_time)
                     state = "hysteresis"
             case "hysteresis":
                 if distance > (tolerance_metres * hysteresis):
@@ -320,7 +322,7 @@ def gps_accuracy():
     except:
         prnt("\nLog is missing GPS or GPA entries")
     else:
-        prnt(f"\nAccuracy  (min,avg,max):  H [{HAcc[0]}, {HAcc[1]}, {HAcc[2]}]m   V [{VAcc[0]} {VAcc[1]} {VAcc[2]}]m")
+        prnt(f"\nAccuracy  (min,avg,max):  H [{HAcc[0]}, {HAcc[1]}, {HAcc[2]}]m   V [{VAcc[0]}, {VAcc[1]}, {VAcc[2]}]m")
         prnt(f"Sat Count (min,avg,max):  [{NSat[0]}, {NSat[1]}, {NSat[2]}]")
     return
 
@@ -367,7 +369,7 @@ def prnt(st: str="") -> None:
         status.insert(tk.END, st + "\n")
         root.update()
     except:
-        return
+        pass
 
 
 '''
