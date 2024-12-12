@@ -54,6 +54,42 @@ class Pos:
     
 
 '''
+F3A Zone box store and write functions
+'''
+class F3aZone:
+    def __init__(s) -> None:
+        s.pilot = None
+        s.centre = None
+        
+    def __str__(s) -> str:
+        if s.valid():
+            return f"Pilot:  {str(s.pilot)}\nCentre: {str(s.centre)}"
+        else:
+            return "F3aZone position not set."
+        
+    def valid(s) -> bool:
+        return (s.pilot is not None) and (s.centre is not None)
+    
+    def unset(s) -> None:
+        s.pilot = None
+        s.centre = None
+    
+    def set(s, pilot: Pos, centre: Pos) -> None:
+        s.pilot = pilot
+        s.centre = centre
+              
+    def write(s, path) -> None:
+        with open(path, "w") as fd:
+            fd.write("Emailed box data for F3A Zone Pro - please DON'T modify!\n")
+            fd.write("1\n")
+            fd.write(f"{round(s.pilot.Lat, 7)}\n")
+            fd.write(f"{round(s.pilot.Lng, 7)}\n")
+            fd.write(f"{round(s.centre.Lat, 7)}\n")
+            fd.write(f"{round(s.centre.Lng, 7)}\n")
+            fd.write("0\n")
+
+
+'''
 Parse a logfile into a pandas dataframe and provide analysis of it.
 Methods are generally in two categories:
    - dealing with the log as a whole including all message types
@@ -185,6 +221,7 @@ def open_file() -> None:
 
     # All good, update the initdir for future dialogues.
     config["open_file"]["path"] = os.path.dirname(os.path.realpath(file_path))
+    config["open_file"]["file"] = os.path.basename(os.path.realpath(file_path))
     prnt(f"{log}")
 
 
@@ -197,7 +234,7 @@ it will try to find stationary periods in the log and use those.
 Otherwise, it will use the switch transition times.
 '''
 def extract_box() -> None:
-    global log, config
+    global log, config, f3az
     if log is None:
         prnt("Please open a BIN file to be analysed.")
         return
@@ -216,8 +253,9 @@ def extract_box() -> None:
         prnt("Failed to find at least two times to provide box locations")
         return
 
-    # Display the locations
+    # Display the locations and combine into 5m clusters
     t_origin = log.get_origin().timestamp
+    cluster = []
     for t in times:
         if t < t_origin:
             prnt(f"Skippng time {round(t,1)}s as it occurs before the origin time ({round(t_origin,1)})")
@@ -227,6 +265,24 @@ def extract_box() -> None:
         prnt(f"\nPosition at time {round(t,1)}s, {round(d,1)}m from origin:")   
         prnt(f"{round(p.Lat, 7)}")
         prnt(f"{round(p.Lng, 7)}")
+        
+        found = False
+        for i, c in enumerate(cluster):
+            if FcLog.get_dist_m(p, c) < 5.0:
+                cluster[i] = p
+                found = True
+                break
+            
+        if not found:
+            cluster.append(p)
+    
+    if len(cluster) == 2:
+        f3az.set(cluster[0], cluster[1])
+        prnt('\nBox extracted:')
+        prnt(str(f3az))       
+    else:
+        prnt('\nBox position is unclear.')
+        f3az.unset()        
 
 
 '''
@@ -303,6 +359,30 @@ def find_static_position_times() -> List[float]:
     return switch_times
 
 
+'''
+---------------------------------------------------------------------
+BOX SAVE
+Assuming a successful extraction, save the box to F3A Zone file.
+'''
+def save_box() -> None:
+    global config, f3az
+    
+    if not f3az.valid():
+        prnt("No usable box available to be written.")
+        return
+
+    # Get file path using tk dialogue.
+    file_path = tk.filedialog.asksaveasfilename(
+        title="Save File", 
+        initialdir=config["open_file"]["path"], 
+        initialfile=f"{((config["open_file"]["file"]).split('.'))[0]}.f3a",
+        filetypes=[("F3A Zone", ".f3a")]
+        )
+
+    f3az.write(file_path)
+    prnt(f"Box written to {file_path}")
+    
+    
 '''
 ---------------------------------------------------------------------
 GPS ACCURACY
@@ -435,8 +515,11 @@ def rc_spinbox_change():
 if __name__ == "__main__":
     # Globals.
     global config, log, rc_switch, root, status
+    global f3az
     log = None
-
+    
+    f3az = F3aZone()
+    
     # If it doesn't exist, create the configuration file.
     cfgFile = os.path.dirname(os.path.realpath(__file__)) + "\\fcbe_config.json"
     if not os.path.exists(cfgFile):
@@ -462,14 +545,17 @@ if __name__ == "__main__":
     eb = tk.Button(button_frame, text="Extract Box", command=extract_box)
     eb.grid(column=1, row=0, padx=2)
 
+    wb = tk.Button(button_frame, text="Save Box", command=save_box)
+    wb.grid(column=2, row=0, padx=2)
+
     pa = tk.Button(button_frame, text="GPS Accuracy", command=gps_accuracy)
-    pa.grid(column=2, row=0, padx=2)
+    pa.grid(column=3, row=0, padx=2)
 
     mr = tk.Button(button_frame, text="Msg. Rates", command=message_rates)
-    mr.grid(column=3, row=0, padx=2)
+    mr.grid(column=4, row=0, padx=2)
 
     rc_frame = tk.Frame(button_frame, width=10, relief="ridge", bd=2)
-    rc_frame.grid(column=4, row=0, padx=2)
+    rc_frame.grid(column=5, row=0, padx=2)
     rc_label = tk.Label(rc_frame, text="RC Ch:")
     rc_label.pack(padx=5, side=tk.LEFT)
     rc_switch = tk.StringVar(value=config["find_rc_switch_times"]["rc_switch_channel"])
