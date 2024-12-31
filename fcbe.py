@@ -86,7 +86,7 @@ class F3aZone:
             fd.write(f"{round(s.pilot.Lng, 7)}\n")
             fd.write(f"{round(s.centre.Lat, 7)}\n")
             fd.write(f"{round(s.centre.Lng, 7)}\n")
-            fd.write("0\n")
+            fd.write(f"{round(s.pilot.Alt, 1)}\n")
 
 
 '''
