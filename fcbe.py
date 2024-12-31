@@ -1,5 +1,5 @@
 #    Project - FC Box Extractor
-#    Copyright(c) 2024 Adrian Mansell
+#    Copyright(c) 2024-2025 Adrian Mansell
 #    arnie@spoonwibble.com
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -65,7 +65,7 @@ class F3aZone:
         if s.valid():
             return f"Pilot:  {str(s.pilot)}\nCentre: {str(s.centre)}"
         else:
-            return "F3aZone position not set."
+            return "F3aZone position has not been set."
         
     def valid(s) -> bool:
         return (s.pilot is not None) and (s.centre is not None)
@@ -86,7 +86,7 @@ class F3aZone:
             fd.write(f"{round(s.pilot.Lng, 7)}\n")
             fd.write(f"{round(s.centre.Lat, 7)}\n")
             fd.write(f"{round(s.centre.Lng, 7)}\n")
-            fd.write("0\n")
+            fd.write(f"{round(s.pilot.Alt, 2)}\n")
 
 
 '''
@@ -215,7 +215,7 @@ def open_file() -> None:
     # Load it
     log = FcLog(file_path=file_path, message_types=config["open_file"]["message_types"])
     if log is None:
-        prnt(f"Unable to parse BIN file {file_path}")
+        prnt(f"Unable to parse the BIN file at {file_path}")
         prnt("Are you sure it is a valid Ardupilot log?")
         return
 
